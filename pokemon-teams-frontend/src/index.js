@@ -4,7 +4,7 @@ const POKEMONS_URL = `${BASE_URL}/pokemons`
 let mainElement = document.querySelector("main");
 
 function reqTrainers() {
-  fetch(`${BASE_URL}/trainers`)
+  fetch(`${TRAINERS_URL}`)
   .then(res => res.json())
   .then(json => renderTrainers(json))
 }
@@ -18,7 +18,7 @@ function renderTrainers(trainers) {
 
     mainElement.insertAdjacentHTML("beforeend", `
       <div class="card" data-id=${i}>
-      <button class="add-pokemon" data-trainer-id="${i}">Add Pokemon</button>
+      <button class="add-pokemon" data-trainer-id="${i + 1}">Add Pokemon</button>
         <h2>${trainer.name}</h2>
         <ul>${pokemonList} </ul>
       </div>
@@ -26,24 +26,30 @@ function renderTrainers(trainers) {
   });
 }
 
-mainElement.addEventListener('click', e => {
-  if (e.target.className.includes('release')) {
-    alert("are you sure?")
-    fetch(`${BASE_URL}/pokemons/${e.target.dataset.pokemonId}`, { method: "DELETE" })
+function createPokemon(trainerId) {
+  fetch(`${POKEMONS_URL}`, {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      'trainer_id': trainerId
+    })
+  })
+}
+
+function deletePokemon(pokemonId) {
+  fetch(`${POKEMONS_URL}/${pokemonId}`, { method: "DELETE" })
+}
+
+
+mainElement.addEventListener('click', ({target: {className}, target: {dataset}}) => {
+  if (className.includes('release')) {
+    confirm("Are You sure?") ? deletePokemon(dataset.pokemonId) : null
   }
 
-  if (e.target.className.includes('add-pokemon')) {
-    console.log(e.target.dataset.trainerId);
-    
-    fetch(`${BASE_URL}/pokemons`, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        'trainer_id': (parseInt(e.target.dataset.trainerId) + 1)
-      })
-    })
+  if (className.includes('add-pokemon')) {
+    createPokemon(dataset.trainerId)
   }
 })
 
